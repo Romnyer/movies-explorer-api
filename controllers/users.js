@@ -49,7 +49,6 @@ module.exports.login = (req, res, next) => {
           if (!matched) {
             throw new AuthError('Неправильные почта или пароль');
           }
-          console.log(NODE_ENV === 'production' ? JWT_CODE : 'secret-key');
           const token = jwt.sign(
             { _id: user._id },
             NODE_ENV === 'production' ? JWT_CODE : 'secret-key',
