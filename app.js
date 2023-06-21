@@ -4,39 +4,33 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const cors = require('cors');
 const hemlet = require('helmet');
-const rateLimit = require('express-rate-limit');
 
 // Environment vars
-const { PORT = 3000 } = process.env;
-
-// Request limit
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
+const { PORT, DB_NAME } = process.env;
 
 // Function imports
 const router = require('./routes/index');
 const errorCatcher = require('./middlewares/errorCatcher');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const limiter = require('./middlewares/rateLimiter');
 
 const app = express();
 
 // Safety
 app.use(hemlet());
-app.use(limiter);
 app.use(cors());
 
 // Connect to data base
-mongoose.connect('mongodb://127.0.0.1:27017/moviesdb', {});
+mongoose.connect(DB_NAME, {});
 
 // Parser
 app.use(express.json());
 
 // Request logging
 app.use(requestLogger);
+
+// Request limit (includes logger)
+app.use(limiter);
 
 // Routing
 app.use('/', router);
